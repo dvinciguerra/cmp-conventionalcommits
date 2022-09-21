@@ -49,8 +49,9 @@ local typesDict = {
 
 function source.new()
   local result = io.popen(
-                     [[node --eval 'console.log(process.argv[1])' $(npm list --long --parseable --depth=0 @commitlint/cli | awk -F@ '{print $NF}') 2>/dev/null]]):read(
-                     "*a")
+    [[node --eval 'console.log(process.argv[1])' $(npm list --long --parseable --depth=0 @commitlint/cli | awk -F@ '{print $NF}') 2>/dev/null]])
+      :read(
+        "*a")
   -- dump(result)
   if result == "undefined\n" then
     -- Error handling.
@@ -63,8 +64,9 @@ function source.new()
   else
     if string.match(result, "^1[2|3]") then
       local newcommitlint = io.popen(
-                                [[node --eval 'eval("var obj ="+process.argv[1]);console.log(JSON.stringify(obj?.rules?.["type-enum"]?.[2]));' "$(npx commitlint --print-config --no-color | tr '\n' ' ')" 2>/dev/null]]):read(
-                                "*a")
+        [[node --eval 'eval("var obj ="+process.argv[1]);console.log(JSON.stringify(obj?.rules?.["type-enum"]?.[2]));' "$(npx commitlint --print-config --no-color | tr '\n' ' ')" 2>/dev/null]])
+          :read(
+            "*a")
       -- dump(newcommitlint)
       if newcommitlint ~= "" then
         -- Success handling.
@@ -74,7 +76,7 @@ function source.new()
           if typesDict[v] then
             table.insert(types, typesDict[v])
           else
-            table.insert(types, {label = v})
+            table.insert(types, { label = v })
           end
         end
         source.types = types
@@ -89,8 +91,9 @@ function source.new()
       end
     else
       local oldcommitlint = io.popen(
-                                [[node --eval 'console.log(JSON.stringify(require("@commitlint/config-conventional")?.rules?.["type-enum"]?.[2]));' 2>/dev/null]]):read(
-                                "*a")
+        [[node --eval 'console.log(JSON.stringify(require("@commitlint/config-conventional")?.rules?.["type-enum"]?.[2]));' 2>/dev/null]])
+          :read(
+            "*a")
       -- dump(oldcommitlint)
       if oldcommitlint ~= "" then
         -- Success handling.
@@ -100,7 +103,7 @@ function source.new()
           if typesDict[v] then
             table.insert(types, typesDict[v])
           else
-            table.insert(types, {label = v})
+            table.insert(types, { label = v })
           end
         end
         source.types = types
@@ -132,9 +135,13 @@ function source.new()
   return setmetatable({}, {__index = source})
 end
 
-function source:is_available() return vim.bo.filetype == "gitcommit" end
+function source:is_available()
+  return vim.bo.filetype == "gitcommit"
+end
 
-function source:get_keyword_pattern() return [[\w\+]] end
+function source:get_keyword_pattern()
+  return [[\w\+]]
+end
 
 local function candidates(entries)
   local items = {}
@@ -151,7 +158,7 @@ end
 local function candidatesLernaScope(entries)
   local items = {}
   for k, v in ipairs(entries) do
-    items[k] = {label = v, kind = require('cmp').lsp.CompletionItemKind.Folder}
+    items[k] = { label = v, kind = require('cmp').lsp.CompletionItemKind.Folder }
   end
   return items
 end
@@ -159,13 +166,13 @@ end
 function source:complete(request, callback)
   if request.context.option.reason == "manual" and request.context.cursor.row ==
       1 and request.context.cursor.col == 1 then
-    callback({items = candidates(self.types), isIncomplete = true})
+    callback({ items = candidates(self.types), isIncomplete = true })
   elseif request.context.option.reason == "auto" and request.context.cursor.row ==
       1 and request.context.cursor.col == 2 then
-    callback({items = candidates(self.types), isIncomplete = true})
+    callback({ items = candidates(self.types), isIncomplete = true })
   elseif request.context.cursor_after_line == ")" and request.context.cursor.row ==
       1 then
-    callback({items = candidatesLernaScope(self.scopes), isIncomplete = true})
+    callback({ items = candidatesLernaScope(self.scopes), isIncomplete = true })
   else
     callback()
   end
