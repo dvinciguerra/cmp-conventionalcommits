@@ -119,20 +119,7 @@ function source.new()
     end
   end
 
-  local lernaresult = io.popen(
-                          [[./node_modules/.bin/lerna --loglevel silent list --all --long --parseable 2>/dev/null | cut --delimiter=':' --fields=2 | cut --delimiter='/' --fields=2]]):read(
-                          "*a")
-  if lernaresult ~= "" then
-    -- Success handling.
-    local lines = {}
-    for s in lernaresult:gmatch("[^\r\n]+") do table.insert(lines, s) end
-    source.scopes = lines
-  else
-    -- Error handling.
-    source.scopes = {}
-  end
-
-  return setmetatable({}, {__index = source})
+  return setmetatable({}, { __index = source })
 end
 
 function source:is_available()
